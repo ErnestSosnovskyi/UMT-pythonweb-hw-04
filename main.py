@@ -15,7 +15,9 @@ async def copy_file(file_path: Path, output_folder: Path):
         extension = file_path.suffix.lower().lstrip('.')
         if not extension:
             extension = "no_extension"
-        target_dir = output_folder / extension        
+        target_dir = output_folder / extension
+
+        await asyncio.to_thread(target_dir.mkdir, parents=True, exist_ok=True)
 
         target_path = target_dir / file_path.name
 
@@ -29,7 +31,7 @@ async def read_folder(source_folder: Path, output_folder: Path):
     try:
         for item in source_folder.iterdir():
             if item.is_dir():
-                await read_folder(item, output_folder)
+                tasks.append(read_folder(item, output_folder))
             elif item.is_file():
                 tasks.append(copy_file(item, output_folder))
         if tasks:
